@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>README</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<h1 id="star-siege---2d-arcade-space-shooter">Star Siege - 2D Arcade
+Space Shooter</h1>
+<p><strong>Project:</strong> Game Development Final Project<br />
+<strong>Version:</strong> v1.10.0<br />
+<strong>Build:</strong> v1.10.0-drag-control-placement-2026-05-10-1</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#project-overview">Project Overview</a></li>
+<li><a href="#game-features">Game Features</a></li>
+<li><a href="#controls">Controls</a></li>
+<li><a href="#technical-stack">Technical Stack</a></li>
+<li><a href="#file-structure">File Structure</a></li>
+<li><a href="#installation--setup">Installation &amp; Setup</a></li>
+<li><a href="#credits">Credits</a></li>
+</ol>
+<hr />
+<h2 id="project-overview">Project Overview</h2>
+<p>Star Siege is a fully browser-based 2D arcade space shooter developed
+as a final project for the Game Development course. It demonstrates core
+game development concepts — game loops, collision detection, state
+management, and responsive UI — built from scratch without a game
+engine.</p>
+<p>The goal is to pilot a spaceship, destroy alien enemy waves across 10
+escalating levels, and earn coins to purchase persistent upgrades in the
+Black Market, all while achieving the highest possible score.</p>
+<hr />
+<h2 id="game-features">Game Features</h2>
+<h3 id="core-gameplay">Core Gameplay</h3>
+<ul>
+<li><strong>10 Levels</strong> with unique speed, spawn rates, enemy
+types, and boss configurations</li>
+<li><strong>Layered Boss Battles</strong> with multi-phase health bars
+and dedicated boss music</li>
+<li><strong>Persistent Progression</strong> — coins, high scores, pilot
+name, and ship upgrades saved via localStorage</li>
+</ul>
+<h3 id="power-ups">Power-Ups</h3>
+<table>
+<thead>
+<tr>
+<th>Icon</th>
+<th>Name</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🛡</td>
+<td>Shield</td>
+<td>Deflects attacks for 3 seconds</td>
+</tr>
+<tr>
+<td>⚡</td>
+<td>Rapid Fire</td>
+<td>2x fire rate</td>
+</tr>
+<tr>
+<td>💠</td>
+<td>Triple Shot</td>
+<td>Fires 3 bullets at once</td>
+</tr>
+<tr>
+<td>✨</td>
+<td>Cleanse</td>
+<td>Removes all active debuffs</td>
+</tr>
+<tr>
+<td>M</td>
+<td>Magnet</td>
+<td>Pulls power-ups toward the player</td>
+</tr>
+<tr>
+<td>❤</td>
+<td>+1 Life</td>
+<td>Gain an extra life</td>
+</tr>
+<tr>
+<td>💣</td>
+<td>Bomb</td>
+<td>Instantly clears all enemies on screen</td>
+</tr>
+</tbody>
+</table>
+<h3 id="debuffs">Debuffs</h3>
+<table>
+<thead>
+<tr>
+<th>Icon</th>
+<th>Name</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🐢</td>
+<td>Slow</td>
+<td>Movement speed halved</td>
+</tr>
+<tr>
+<td>🔄</td>
+<td>Reversed</td>
+<td>Controls flipped</td>
+</tr>
+<tr>
+<td>🚫</td>
+<td>Jammed</td>
+<td>Cannot shoot</td>
+</tr>
+<tr>
+<td>⬛</td>
+<td>Oversized</td>
+<td>Hitbox doubled</td>
+</tr>
+<tr>
+<td>👁</td>
+<td>Blind</td>
+<td>Partial screen blackout</td>
+</tr>
+<tr>
+<td>💢</td>
+<td>Enraged</td>
+<td>Enemies move 2x faster</td>
+</tr>
+</tbody>
+</table>
+<h3 id="enemy-types">Enemy Types</h3>
+<ul>
+<li><strong>Scout</strong> — Basic enemy (Levels 1-10)</li>
+<li><strong>Fighter</strong> — Faster variant (Level 2+)</li>
+<li><strong>Alien</strong> — Orbital movement, shoots at player (Level
+2+)</li>
+<li><strong>Zigzag</strong> — Serpentine pattern (Level 4+)</li>
+<li><strong>Shooter</strong> — Fires projectiles (Level 5+)</li>
+<li><strong>Gunship</strong> — Tri-shot pattern (Level 5+)</li>
+<li><strong>Swoop</strong> — Diving attack pattern (Level 6+)</li>
+<li><strong>Crawler</strong> — Moves side-to-side (Level 7+)</li>
+<li><strong>Burst</strong> — Radial bullet spread (Level 8+)</li>
+<li><strong>Mine</strong> — Stationary hazard (Level 9+)</li>
+</ul>
+<h3 id="upgrades-black-market">Upgrades (Black Market)</h3>
+<ul>
+<li><strong>Thruster Engine</strong> — Increases movement speed</li>
+<li><strong>Overclock Blaster</strong> — Reduces weapon cooldown</li>
+<li><strong>Titanium Hull</strong> — +1 Starting Life</li>
+</ul>
+<hr />
+<h2 id="controls">Controls</h2>
+<h3 id="desktop">Desktop</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WASD / Arrow Keys</td>
+<td>Move</td>
+</tr>
+<tr>
+<td>Space</td>
+<td>Shoot</td>
+</tr>
+<tr>
+<td>P</td>
+<td>Pause</td>
+</tr>
+</tbody>
+</table>
+<h3 id="mobile">Mobile</h3>
+<ul>
+<li><strong>Joystick Mode</strong> — Drag virtual joystick to move
+(default)</li>
+<li><strong>Button Mode</strong> — D-pad buttons for movement</li>
+<li>Fire button on right side</li>
+</ul>
+<p>Mobile controls feature adjustable sensitivity, joystick size, and
+button size. Control positions can be saved and restored.</p>
+<hr />
+<h2 id="technical-stack">Technical Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Technology</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTML5 Canvas</td>
+<td>Game rendering</td>
+</tr>
+<tr>
+<td>JavaScript</td>
+<td>Game logic, input handling</td>
+</tr>
+<tr>
+<td>CSS3</td>
+<td>Styling, animations, dark theme</td>
+</tr>
+<tr>
+<td>Bootstrap 5</td>
+<td>Responsive layout</td>
+</tr>
+<tr>
+<td>PHP</td>
+<td>Server-side leaderboard</td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td>Online leaderboard database</td>
+</tr>
+<tr>
+<td>Web Audio API</td>
+<td>Procedural sound effects and music</td>
+</tr>
+<tr>
+<td>localStorage</td>
+<td>Persistent high score, coins, upgrades</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="file-structure">File Structure</h2>
+<pre><code>star-siege/
+├── star-siege-deploy/
+│   ├── index.html           # Main game page
+│   ├── game.js              # Core game logic
+│   ├── style.css            # Custom styling
+│   ├── db_config.php        # Database connection
+│   ├── save_score.php       # Submit score endpoint
+│   ├── get_leaderboard.php # Retrieve leaderboard
+│   ├── assets/
+│   │   ├── js/
+│   │   │   └── game.js      # Game engine
+│   │   ├── css/
+│   │   │   └── style.css   # Visual styles
+│   │   └── img/
+│   │       ├── star_siege_bezel.png
+│   │       └── bezel.png
+│   └── assets/
+│       └── asset.zip
+└── README.md                # This file</code></pre>
+<hr />
+<h2 id="installation-setup">Installation &amp; Setup</h2>
+<h3 id="local-development-xampp">Local Development (XAMPP)</h3>
+<ol type="1">
+<li><p>Install XAMPP or a similar PHP development environment</p></li>
+<li><p>Copy <code>star-siege-deploy/</code> to your XAMPP htdocs folder
+(e.g., <code>htdocs/star-siege</code>)</p></li>
+<li><p>Configure <code>db_config.php</code> with your MySQL database
+credentials</p></li>
+<li><p>Create the <code>leaderboard</code> table:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> leaderboard (</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">id</span> <span class="dt">INT</span> AUTO_INCREMENT <span class="kw">PRIMARY</span> <span class="kw">KEY</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    name <span class="dt">VARCHAR</span>(<span class="dv">10</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    score <span class="dt">INT</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    date_saved <span class="dt">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="fu">CURRENT_TIMESTAMP</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div></li>
+<li><p>Open <code>http://localhost/star-siege</code> in your
+browser</p></li>
+</ol>
+<h3 id="online-deployment">Online Deployment</h3>
+<ol type="1">
+<li>Upload files to any web hosting with PHP support</li>
+<li>Set up a MySQL database and configure
+<code>db_config.php</code></li>
+<li>Deploy and share your game URL</li>
+</ol>
+<hr />
+<h2 id="credits">Credits</h2>
+<ul>
+<li><strong>Developer:</strong> Student Project</li>
+<li><strong>Course:</strong> Game Development Final Project</li>
+<li><strong>Libraries:</strong> Bootstrap 5, Font Awesome, Google Fonts
+(Orbitron, Rajdhani)</li>
+<li><strong>Audio:</strong> Procedural Web Audio API (no external audio
+files)</li>
+</ul>
+<hr />
+<p><em>Star Siege — Defend the galaxy!</em></p>
+</body>
+</html>

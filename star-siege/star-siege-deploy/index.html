@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Star Siege - 2D Space Shooter</title>
+    <style>
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background: #020810;
+            color: #eafcff;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            opacity: 0;
+            transition: opacity 120ms ease;
+        }
+        body.styles-ready {
+            opacity: 1;
+        }
+        .cache-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #020810;
+            color: #eafcff;
+            transition: opacity 220ms ease, visibility 220ms ease;
+        }
+        .cache-loader.done {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .cache-loader-panel {
+            width: min(320px, calc(100vw - 48px));
+            text-align: center;
+        }
+        .cache-loader-title {
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #00d4ff;
+            margin-bottom: 12px;
+        }
+        .cache-loader-track {
+            height: 8px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(0,212,255,0.35);
+            border-radius: 999px;
+        }
+        .cache-loader-fill {
+            width: 12%;
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #7b2fff);
+            box-shadow: 0 0 14px rgba(0,212,255,0.65);
+            transition: width 180ms ease;
+        }
+        .cache-loader-note {
+            margin-top: 10px;
+            font-size: 12px;
+            color: rgba(234,252,255,0.68);
+        }
+        @media (max-width: 576px) {
+            .cache-loader-panel {
+                width: min(280px, calc(100vw - 36px));
+            }
+            .cache-loader-title {
+                font-size: 14px;
+            }
+            .cache-loader-note {
+                font-size: 11px;
+            }
+        }
+        .game-header,
+        .game-card,
+        .info-card,
+        .doc-card,
+        .custom-modal {
+            background: #07111f;
+            color: #eafcff;
+            border-color: rgba(0,212,255,0.25);
+        }
+    </style>
+
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" id="mainStylesheet" href="assets/css/style.css">
+    <script>
+        window.STAR_SIEGE_BUILD = window.STAR_SIEGE_BUILD || 'v1.10.0-drag-control-placement-2026-05-10-1';
+        try {
+            const url = new URL(window.location.href);
+            if (url.searchParams.get('build') !== window.STAR_SIEGE_BUILD) {
+                url.searchParams.set('build', window.STAR_SIEGE_BUILD);
+                window.history.replaceState(null, '', url);
+            }
+        } catch (err) {}
+        const stylesheet = document.getElementById('mainStylesheet');
+        stylesheet.href = 'assets/css/style.css?v=' + encodeURIComponent((window.STAR_SIEGE_BUILD || 'dev') + '-' + Date.now());
+        stylesheet.addEventListener('load', () => document.body && document.body.classList.add('styles-ready'));
+        window.addEventListener('DOMContentLoaded', () => document.body.classList.add('styles-ready'));
+    </script>
+</head>
+<body>
+<div id="cacheLoader" class="cache-loader" role="status" aria-live="polite">
+    <div class="cache-loader-panel">
+        <div class="cache-loader-title">OPTIMIZING GAME</div>
+        <div class="cache-loader-track">
+            <div id="cacheLoaderFill" class="cache-loader-fill"></div>
+        </div>
+        <div id="cacheLoaderNote" class="cache-loader-note">Clearing old game files...</div>
+    </div>
+</div>
+<script>
+    window.STAR_SIEGE_BUILD = 'v1.10.0-drag-control-placement-2026-05-10-1';
+    window.starSiegeCacheReady = (async () => {
+        const fill = document.getElementById('cacheLoaderFill');
+        const note = document.getElementById('cacheLoaderNote');
+        const setProgress = (pct, text) => {
+            if (fill) fill.style.width = pct + '%';
+            if (note && text) note.textContent = text;
+        };
+
+        try {
+            setProgress(18, 'Checking saved build...');
+
+            if ('caches' in window) {
+                setProgress(34, 'Clearing old cached files...');
+                const keys = await caches.keys();
+                await Promise.all(keys.map(key => caches.delete(key)));
+            }
+            setProgress(58, 'Refreshing joystick assets...');
+
+            if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(regs.map(reg => reg.unregister()));
+            }
+
+            localStorage.setItem('starSiegeBuild', window.STAR_SIEGE_BUILD);
+            setProgress(82, 'Loading latest game files...');
+        } catch (err) {
+            setProgress(82, 'Loading latest game files...');
+        }
+    })();
+</script>
+
+<!-- ===== HEADER ===== -->
+<header class="game-header text-center py-3" id="mainHeader">
+    <h1 class="game-title">
+        <i class="fa-solid fa-space-shuttle"></i>
+        Star Siege
+        <i class="fa-solid fa-space-shuttle fa-flip-horizontal"></i>
+    </h1>
+    <p class="game-subtitle">2D ARCADE SPACE SHOOTER</p>
+</header>
+
+<!-- ===== MAIN LAYOUT ===== -->
+<main class="container-fluid py-3">
+    <div class="row justify-content-center align-items-start g-3">
+
+        <!-- ===== GAME COLUMN ===== -->
+        <div class="col-12 col-lg-7 col-xl-6" id="gameCol">
+
+            <!-- Game Wrapper Card -->
+            <div class="card game-card position-relative">
+                
+                <!-- Global Fullscreen Button -->
+                <button id="globalFullscreenBtn" class="btn btn-hud-action position-absolute top-0 end-0 m-2" style="z-index: 100;" title="Fullscreen">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+
+                <!-- Fullscreen Arcade Bezels -->
+                <div class="arcade-bezel arcade-bezel-left">
+                    <div class="bezel-content">
+                        <h4 class="bezel-title"><i class="fa-solid fa-bolt text-warning me-2"></i>POWER-UPS</h4>
+                        <ul class="bezel-list">
+                            <li><span class="pu-icon">🛡</span><div><div class="pu-name" style="color:#00aaff">SHIELD</div><div class="pu-desc">Deflects attacks for 3s</div></div></li>
+                            <li><span class="pu-icon">⚡</span><div><div class="pu-name" style="color:#ffcc00">RAPID FIRE</div><div class="pu-desc">2x fire rate</div></div></li>
+                            <li><span class="pu-icon">💠</span><div><div class="pu-name" style="color:#ff44ff">TRIPLE SHOT</div><div class="pu-desc">3 bullets at once</div></div></li>
+                            <li><span class="pu-icon">✨</span><div><div class="pu-name" style="color:#00ffcc">CLEANSE</div><div class="pu-desc">Removes debuffs</div></div></li>
+                            <li><span class="pu-icon">M</span><div><div class="pu-name" style="color:#66ffdd">MAGNET</div><div class="pu-desc">Pulls power-ups only</div></div></li>
+                            <li><span class="pu-icon">❤</span><div><div class="pu-name" style="color:#ff3c5a">+1 LIFE</div><div class="pu-desc">Extra life</div></div></li>
+                            <li><span class="pu-icon">💣</span><div><div class="pu-name" style="color:#ff8800">BOMB</div><div class="pu-desc">Clears screen</div></div></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="arcade-bezel arcade-bezel-right">
+                    <div class="bezel-content">
+                        <h4 class="bezel-title"><i class="fa-solid fa-skull-crossbones text-danger me-2"></i>DEBUFFS</h4>
+                        <ul class="bezel-list">
+                            <li><span class="pu-icon">🐢</span><div><div class="pu-name" style="color:#88aaff">SLOW</div><div class="pu-desc">Speed halved</div></div></li>
+                            <li><span class="pu-icon">🔄</span><div><div class="pu-name" style="color:#ff8800">REVERSED</div><div class="pu-desc">Controls flipped</div></div></li>
+                            <li><span class="pu-icon">🚫</span><div><div class="pu-name" style="color:#ff3333">JAMMED</div><div class="pu-desc">Can't shoot</div></div></li>
+                            <li><span class="pu-icon">⬛</span><div><div class="pu-name" style="color:#ffcc00">OVERSIZED</div><div class="pu-desc">Double hitbox</div></div></li>
+                            <li><span class="pu-icon">👁</span><div><div class="pu-name" style="color:#333355">BLIND</div><div class="pu-desc">Screen blackout</div></div></li>
+                            <li><span class="pu-icon">💢</span><div><div class="pu-name" style="color:#ff0055">ENRAGED</div><div class="pu-desc">Enemies 2x faster</div></div></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card-body p-2 p-md-3 z-index-1">
+
+                    <!-- ===== START SCREEN ===== -->
+                    <div id="startScreen" class="game-screen active">
+                        <div class="screen-content text-center">
+                            <div class="start-logo mb-3">
+                                <span class="logo-icon"><i class="fa-solid fa-shuttle-space" style="color: var(--clr-accent);"></i></span>
+                            </div>
+                            <h2 class="screen-title">STAR SIEGE</h2>
+                            <p class="screen-desc">
+                                Defend the galaxy! Destroy waves of enemies, survive all levels,
+                                and achieve the highest score possible.
+                            </p>
+
+                            <!-- Controls Info -->
+                            <div class="controls-box mb-4">
+                                <h5 class="controls-title"><i class="fa-solid fa-gamepad"></i> Controls</h5>
+                                <div class="row g-2 text-start">
+                                    <div class="col-6">
+                                        <div class="ctrl-item">
+                                            <kbd>WASD</kbd> / <kbd>Arrows</kbd> Move
+                                        </div>
+                                        <div class="ctrl-item">
+                                            <kbd>Space</kbd> Shoot
+                                        </div>
+                                        <div class="ctrl-item">
+                                            <kbd>P</kbd> Pause
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="ctrl-item"><i class="fa-solid fa-mobile-alt"></i> Mobile: Buttons or joystick</div>
+                                    </div>
+                                </div>
+                                <div class="mobile-control-settings control-settings-panel mt-3 mx-auto">
+                                    <div class="control-mode-toggle" role="group" aria-label="Mobile control mode">
+                                        <button class="control-mode-btn" type="button" data-control-mode-choice="buttons">BTN</button>
+                                        <button class="control-mode-btn active" type="button" data-control-mode-choice="joystick">JOY</button>
+                                    </div>
+                                    <label class="sensitivity-control">
+                                        <span>SENS</span>
+                                        <input class="joystick-sensitivity" type="range" min="60" max="160" value="100" step="10">
+                                    </label>
+                                    <label class="control-size-control">
+                                        <span>JOY SIZE</span>
+                                        <input class="joystick-scale" type="range" min="80" max="130" value="100" step="5">
+                                    </label>
+                                    <label class="control-size-control">
+                                        <span>BTN SIZE</span>
+                                        <input class="button-scale" type="range" min="80" max="130" value="100" step="5">
+                                    </label>
+                                    <div class="control-actions-row">
+                                        <button class="control-mini-btn" type="button" data-control-save-position>SAVE POS</button>
+                                        <button class="control-mini-btn" type="button" data-control-restore-default>DEFAULT</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats Display -->
+                            <div class="d-flex justify-content-center gap-3 mb-4">
+                                <div class="highscore-display">
+                                    <span class="hs-label">BEST:</span>
+                                    <span class="hs-value" id="highScoreDisplay">0</span>
+                                </div>
+                                <div class="highscore-display" style="border-color: rgba(0, 212, 255, 0.25); background: rgba(0, 212, 255, 0.08);">
+                                    <span class="hs-label text-info"><i class="fa-solid fa-coins me-1"></i>COINS:</span>
+                                    <span class="hs-value text-info" style="text-shadow: 0 0 8px rgba(0,212,255,0.5);" id="coinsDisplay">0</span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-column gap-2 align-items-center mt-3">
+                                <div class="w-75 mb-1 text-center">
+                                    <label class="controls-title mb-1" style="font-size: 0.55rem; opacity: 0.7; letter-spacing: 1px;">PUT YOUR SPACESHIP NAME HERE</label>
+                                    <input type="text" id="shipNameInput" class="form-control bg-dark text-white border-secondary text-center" placeholder="ENTER PILOT NAME" maxlength="8" style="font-family: var(--font-title); font-size: 0.75rem; letter-spacing: 2px; border-radius: 8px;">
+                                </div>
+                                <button id="playBtn" class="btn btn-glow btn-lg px-5 w-75">
+                                    <i class="fa-solid fa-play me-2"></i>INSERT COIN (PLAY)
+                                </button>
+                                <button id="upgradesBtn" class="btn btn-outline-glow btn-sm px-4 w-75 mt-2" data-bs-toggle="modal" data-bs-target="#upgradeModal">
+                                    <i class="fa-solid fa-wrench me-2"></i>UPGRADES
+                                </button>
+                                <button id="resetHsBtn" class="btn btn-outline-danger btn-sm px-4 w-75 mt-1">
+                                    <i class="fa-solid fa-skull me-2"></i>RESET HIGH SCORE
+                                </button>
+                            </div>
+
+                            <p class="mt-3 text-muted small">v1.10.0</p>
+                        </div>
+                    </div>
+
+                    <!-- ===== GAME SCREEN ===== -->
+                    <div id="gameScreen" class="game-screen">
+
+                        <!-- HUD Bar -->
+                        <div class="hud-bar d-flex justify-content-between align-items-center px-2 py-1">
+                            <div class="hud-item hud-score">
+                                <span class="hud-label">SCORE</span>
+                                <span class="hud-value" id="scoreDisplay">0</span>
+                            </div>
+                            <div class="hud-item hud-level text-center">
+                                <span class="hud-label">LEVEL</span>
+                                <span class="hud-value" id="levelDisplay">1</span>
+                            </div>
+                            <div class="hud-item hud-lives text-end">
+                                <span class="hud-label">LIVES</span>
+                                <span class="hud-value" id="livesDisplay">♥ ♥ ♥</span>
+                            </div>
+                        </div>
+
+                        <!-- Pause & Fullscreen Buttons -->
+                        <div class="hud-controls d-flex gap-2 position-absolute" style="top: 6px; right: 8px; z-index: 10;">
+                            <button id="pauseBtn" class="btn btn-hud-action" title="Pause (P)">
+                                <i class="fa-solid fa-pause"></i>
+                            </button>
+                            <button id="fullscreenBtn" class="btn btn-hud-action" title="Fullscreen">
+                                <i class="fa-solid fa-expand"></i>
+                            </button>
+                        </div>
+
+                        <!-- Canvas -->
+                        <div class="canvas-wrapper" id="canvasWrapper">
+                            <canvas id="gameCanvas"></canvas>
+                            <div class="crt-overlay"></div>
+
+                            <!-- Level Up Flash Overlay -->
+                            <div id="levelUpFlash" class="level-up-flash">
+                                <span>LEVEL UP!</span>
+                            </div>
+
+                            <!-- Pause Overlay -->
+                            <div id="pauseOverlay" class="pause-overlay">
+                                <div class="pause-content">
+                                    <i class="fa-solid fa-pause pause-icon"></i>
+                                    <h3>PAUSED</h3>
+                                    <div class="pause-menu-actions d-flex flex-column gap-2 align-items-center">
+                                        <button id="resumeBtn" class="btn btn-glow px-3 w-100">
+                                            <i class="fa-solid fa-play me-2"></i>RESUME
+                                        </button>
+                                        <button id="pauseControlsBtn" class="btn btn-outline-glow px-3 w-100">
+                                            <i class="fa-solid fa-gamepad me-2"></i>CONTROLS
+                                        </button>
+                                        <div id="pauseControlsPanel" class="pause-controls-block d-none">
+                                            <div class="controls-title mb-2">CONTROLS</div>
+                                            <div class="mobile-control-settings control-settings-panel mx-auto">
+                                                <div class="control-mode-toggle" role="group" aria-label="Mobile control mode">
+                                                    <button class="control-mode-btn" type="button" data-control-mode-choice="buttons">BTN</button>
+                                                    <button class="control-mode-btn active" type="button" data-control-mode-choice="joystick">JOY</button>
+                                                </div>
+                                                <label class="sensitivity-control">
+                                                    <span>SENS</span>
+                                                    <input class="joystick-sensitivity" type="range" min="60" max="160" value="100" step="10">
+                                                </label>
+                                                <label class="control-size-control">
+                                                    <span>JOY SIZE</span>
+                                                    <input class="joystick-scale" type="range" min="80" max="130" value="100" step="5">
+                                                </label>
+                                                <label class="control-size-control">
+                                                    <span>BTN SIZE</span>
+                                                    <input class="button-scale" type="range" min="80" max="130" value="100" step="5">
+                                                </label>
+                                                <div class="control-drag-hint">DRAG CONTROL BELOW</div>
+                                                <div class="control-actions-row">
+                                                    <button class="control-mini-btn" type="button" data-control-save-position>SAVE POS</button>
+                                                    <button class="control-mini-btn" type="button" data-control-restore-default>DEFAULT</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button id="exitBtn" class="btn btn-outline-danger px-3 w-100">
+                                            <i class="fa-solid fa-right-from-bracket me-2"></i>EXIT
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mobile / touch controls visible on all devices -->
+                        <div class="mobile-controls d-flex justify-content-between align-items-center px-3 py-3 w-100" data-control-mode="joystick">
+                            <div class="mobile-move-area">
+                                <div id="joystickZone" class="joystick-wrapper d-flex align-items-center justify-content-center">
+                                    <div id="joystickBase" class="joystick-base position-relative">
+                                        <div class="joystick-circle"></div>
+                                        <div id="joystickStick" class="joystick-stick"></div>
+                                    </div>
+                                </div>
+                                <div id="buttonPad" class="button-pad" aria-label="Directional buttons">
+                                    <span></span>
+                                    <button id="btnUp" class="btn btn-mobile btn-dir" aria-label="Move up"><i class="fa-solid fa-chevron-up"></i></button>
+                                    <span></span>
+                                    <button id="btnLeft" class="btn btn-mobile btn-dir" aria-label="Move left"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <span></span>
+                                    <button id="btnRight" class="btn btn-mobile btn-dir" aria-label="Move right"><i class="fa-solid fa-chevron-right"></i></button>
+                                    <span></span>
+                                    <button id="btnDown" class="btn btn-mobile btn-dir" aria-label="Move down"><i class="fa-solid fa-chevron-down"></i></button>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <button id="btnFire" class="btn btn-mobile btn-fire" aria-label="Fire">
+                                    <i class="fa-solid fa-burst"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div><!-- /gameScreen -->
+
+                    <!-- ===== GAME OVER SCREEN ===== -->
+                    <div id="gameOverScreen" class="game-screen">
+                        <div class="screen-content text-center">
+                            <div class="gameover-icon mb-3">💥</div>
+                            <h2 class="screen-title text-danger">GAME OVER</h2>
+                            <div class="score-card my-4">
+                                <div class="score-row">
+                                    <span class="sc-label">FINAL SCORE</span>
+                                    <span class="sc-value" id="finalScore">0</span>
+                                </div>
+                                <div class="score-row">
+                                    <span class="sc-label">LEVEL REACHED</span>
+                                    <span class="sc-value" id="finalLevel">1</span>
+                                </div>
+                                <div class="score-row highlight">
+                                    <span class="sc-label">BEST SCORE</span>
+                                    <span class="sc-value" id="finalHighScore">0</span>
+                                </div>
+                            </div>
+                            <div id="newHighScore" class="new-hs-badge d-none">
+                                🏆 NEW HIGH SCORE!
+                            </div>
+                            
+                            <!-- Name Entry for Leaderboard -->
+                            <div class="mt-3 px-4" id="saveScoreSection">
+                                <input type="text" id="playerName" class="form-control bg-dark text-white border-secondary text-center mb-2" placeholder="Enter Your Name" maxlength="10" style="font-family: var(--font-title); font-size: 0.8rem; letter-spacing: 2px;">
+                                <button id="saveScoreBtn" class="btn btn-glow btn-sm w-100">SUBMIT SCORE</button>
+                            </div>
+                            <div class="d-flex flex-column gap-2 align-items-center mt-4">
+                                <button id="continueBtn" class="btn btn-glow btn-lg px-4 w-75">
+                                    <i class="fa-solid fa-forward me-2"></i>CONTINUE <span style="font-size: 0.6em">(RESET SCORE)</span>
+                                </button>
+                                <div class="d-flex gap-2 w-75">
+                                    <button id="restartBtn" class="btn btn-outline-glow btn-lg px-3 flex-fill">
+                                        <i class="fa-solid fa-rotate-right me-2"></i>RESTART
+                                    </button>
+                                    <button id="menuBtn" class="btn btn-outline-glow btn-lg px-3 flex-fill">
+                                        <i class="fa-solid fa-house me-2"></i>MENU
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /card-body -->
+            </div><!-- /card -->
+
+        </div><!-- /game column -->
+
+        <!-- ===== INFO COLUMN ===== -->
+        <div class="col-12 col-lg-4 col-xl-3" id="infoCol">
+
+            <!-- Leaderboard Card -->
+            <div class="card info-card mb-3">
+                <div class="card-header info-card-header">
+                    <i class="fa-solid fa-trophy me-2"></i>Top Commanders
+                </div>
+                <div class="card-body p-2">
+                    <div id="leaderboardList" class="bezel-list" style="max-height: 250px; overflow-y: auto;">
+                        <div class="text-center text-muted py-3" style="font-size: 0.7rem; letter-spacing: 1px;">No records yet. Be the first!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level Info Card -->
+            <div class="card info-card mb-3">
+                <div class="card-header info-card-header">
+                    <i class="fa-solid fa-signal me-2"></i>Level Guide
+                </div>
+                <div class="card-body p-3">
+                    <div class="level-entry">
+                        <span class="lvl-badge lvl-1">WAVE 1-2</span>
+                        <div class="lvl-details">
+                            <div>Scout & Fighter opening waves</div>
+                            <div class="lvl-pts">Intro bosses with x1-x2 health bars</div>
+                        </div>
+                    </div>
+                    <div class="level-entry">
+                        <span class="lvl-badge lvl-2">WAVE 3-6</span>
+                        <div class="lvl-details">
+                            <div>Assault, Siege, Omega & Phantom</div>
+                            <div class="lvl-pts">Tougher enemies, debuffs, boss music</div>
+                        </div>
+                    </div>
+                    <div class="level-entry">
+                        <span class="lvl-badge lvl-3">WAVE 7-10</span>
+                        <div class="lvl-details">
+                            <div>Crystal, Neon, Maelstrom & Ascendant</div>
+                            <div class="lvl-pts">Stacked boss bars up to x12</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Card -->
+            <div class="card info-card mb-3">
+                <div class="card-header info-card-header">
+                    <i class="fa-solid fa-circle-info me-2"></i>About the Game
+                </div>
+                <div class="card-body p-3">
+                    <p class="about-text">
+                        <strong>Star Siege</strong> is a 2D top-down arcade space shooter. Take control
+                        of a starfighter and hold off relentless alien waves across 10 escalating levels.
+                    </p>
+                    <p class="about-text">
+                        Survive, score big, and earn coins to upgrade your ship in the Black Market. Only the best
+                        commanders make it through the Ascendant wave.
+                    </p>
+                    <hr class="about-divider">
+                    <ul class="about-list">
+                        <li><i class="fa-solid fa-star text-warning me-2"></i>10 intense waves with layered bosses</li>
+                        <li><i class="fa-solid fa-wrench text-info me-2"></i>Persistent ship upgrades</li>
+                        <li><i class="fa-solid fa-skull-crossbones text-danger me-2"></i>Challenging debuffs</li>
+                        <li><i class="fa-solid fa-music text-info me-2"></i>Level and boss battle synth music</li>
+                        <li><i class="fa-solid fa-tv text-secondary me-2"></i>Retro CRT arcade aesthetic</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Powerups Card -->
+            <div class="card info-card mb-3">
+                <div class="card-header info-card-header">
+                    <i class="fa-solid fa-bolt me-2"></i>Power-Ups
+                </div>
+                <div class="card-body p-3">
+                    <ul class="pu-legend">
+                        <li><span class="pu-icon">🛡</span><div><div class="pu-name" style="color:#00aaff">SHIELD</div><div style="font-size:0.78rem">Deflects attacks for 3s</div></div></li>
+                        <li><span class="pu-icon">⚡</span><div><div class="pu-name" style="color:#ffcc00">RAPID FIRE</div><div style="font-size:0.78rem">Doubles your fire rate</div></div></li>
+                        <li><span class="pu-icon">💠</span><div><div class="pu-name" style="color:#ff44ff">TRIPLE SHOT</div><div style="font-size:0.78rem">Fires 3 bullets at once</div></div></li>
+                        <li><span class="pu-icon">✨</span><div><div class="pu-name" style="color:#00ffcc">CLEANSE</div><div style="font-size:0.78rem">Removes all debuffs</div></div></li>
+                        <li><span class="pu-icon">M</span><div><div class="pu-name" style="color:#66ffdd">MAGNET</div><div style="font-size:0.78rem">Pulls power-ups only</div></div></li>
+                        <li><span class="pu-icon">❤</span><div><div class="pu-name" style="color:#ff3c5a">+1 LIFE</div><div style="font-size:0.78rem">Gain an extra life</div></div></li>
+                        <li><span class="pu-icon">💣</span><div><div class="pu-name" style="color:#ff8800">BOMB</div><div style="font-size:0.78rem">Clears all enemies instantly</div></div></li>
+                    </ul>
+                    <p class="mt-2 mb-0" style="font-size:0.75rem;color:var(--clr-muted)">Power-ups drop from enemies and bosses. Magnet pulls only power-ups, never debuffs.</p>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card info-card">
+                <div class="card-header info-card-header">
+                    <i class="fa-solid fa-lightbulb me-2"></i>Tips
+                </div>
+                <div class="card-body p-3">
+                    <ul class="tips-list">
+                        <li>🪙 <strong>Spend Coins</strong> in the Black Market to permanently upgrade your ship!</li>
+                        <li>💥 <strong>Lasers Stack!</strong> Collect multiple weapon power-ups for maximum devastation.</li>
+                        <li>✨ <strong>Cleanse</strong> removes all active debuffs. Grab it if you're overwhelmed!</li>
+                        <li>⚠ <strong>Avoid Red Orbs:</strong> They apply dangerous debuffs like Blindness or Reverse!</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div><!-- /info column -->
+
+    </div><!-- /row -->
+</main>
+
+<!-- ===== PROJECT DOCUMENTATION SECTION ===== -->
+<section class="container py-4" id="documentation">
+    <h2 class="doc-section-title text-center mb-4">
+        <i class="fa-solid fa-file-lines me-2"></i>Project Documentation
+    </h2>
+    <div class="row g-3">
+
+        <!-- Introduction -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card doc-card h-100">
+                <div class="card-header doc-card-header">
+                    <i class="fa-solid fa-rocket me-2"></i>Introduction
+                </div>
+                <div class="card-body">
+                    <p class="doc-text">
+                        <strong>Star Siege</strong> is a fully browser-based 2D arcade space shooter developed
+                        as a final project for the Game Development course. It demonstrates core game
+                        development concepts — game loops, collision detection, state management, and
+                        responsive UI — built from scratch without a game engine.
+                    </p>
+                    <p class="doc-text">
+                        The goal is to pilot a spaceship, destroy alien enemy waves, and earn coins to purchase 
+                        persistent upgrades in the Black Market, all while achieving the highest possible score.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Design -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card doc-card h-100">
+                <div class="card-header doc-card-header">
+                    <i class="fa-solid fa-pencil-ruler me-2"></i>Design
+                </div>
+                <div class="card-body">
+                    <p class="doc-text">The game follows an <strong>authentic retro arcade</strong> aesthetic using a dark palette, neon accent glows, and CRT screen effects.</p>
+                    <ul class="doc-list">
+                        <li>CRT scanline overlay and global fullscreen support</li>
+                        <li>Persistent Black Market upgrade system</li>
+                        <li>Synergistic power-ups including magnet, bomb, shield, cleanse, and weapon boosts</li>
+                        <li>10 levels with unique speed, spawn, enemy, and boss configurations</li>
+                        <li>Layered boss health bars with dedicated boss battle music</li>
+                        <li>Particle explosion effects and screen shake on hit</li>
+                        <li>Mobile on-screen touch controls</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card doc-card h-100">
+                <div class="card-header doc-card-header">
+                    <i class="fa-solid fa-wrench me-2"></i>Tools & Technologies
+                </div>
+                <div class="card-body">
+                    <ul class="doc-list">
+                        <li><strong>PHP</strong> — Main file structure &amp; dynamic variables</li>
+                        <li><strong>JavaScript</strong> — Game logic, canvas rendering, input</li>
+                        <li><strong>HTML5 Canvas</strong> — Game object drawing</li>
+                        <li><strong>CSS3</strong> — Animations, dark theme, responsive layout</li>
+                        <li><strong>Bootstrap 5</strong> — Page layout and UI components</li>
+                        <li><strong>Web Audio API</strong> — Procedural sound effects, level music, and boss tracks</li>
+                        <li><strong>localStorage</strong> — Persistent high score, coins, upgrades, and fallback leaderboard</li>
+                        <li><strong>XAMPP</strong> — Local PHP server for development</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Challenges -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card doc-card h-100">
+                <div class="card-header doc-card-header">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Challenges
+                </div>
+                <div class="card-body">
+                    <ul class="doc-list">
+                        <li><strong>Game loop timing</strong> — Solved with delta-time accumulator for consistent spawn rates at any frame rate.</li>
+                        <li><strong>State persistence</strong> — Managed persistent upgrades (Coins, Speed, Fire Rate) alongside session-based scoring via <code>localStorage</code>.</li>
+                        <li><strong>Power-up synergy</strong> — Implemented stacked weapon boosts, screen-clearing bombs, cleanse, and magnet pull for power-ups only.</li>
+                        <li><strong>Layered bosses</strong> — Bosses use x-health bars so high-level fights feel longer without hiding progress.</li>
+                        <li><strong>Sounds without files</strong> — Used Web Audio API oscillators for shots, impacts, level music, and intense boss tracks.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card doc-card h-100">
+                <div class="card-header doc-card-header">
+                    <i class="fa-solid fa-flask me-2"></i>Testing
+                </div>
+                <div class="card-body">
+                    <p class="doc-text">All core features were manually tested across browsers and devices:</p>
+                    <ul class="doc-list">
+                        <li>✅ Persistent upgrades and coin economy</li>
+                        <li>✅ Fullscreen API integration and CRT rendering</li>
+                        <li>Tested: Synergistic power-up stacking and magnet pickup behavior</li>
+                        <li>✅ Bullet-enemy and enemy-player collisions</li>
+                        <li>Tested: 10-level progression and game over trigger</li>
+                        <li>Tested: High score, local leaderboard fallback, and score submission flow</li>
+                        <li>Tested: Layered boss health bars and level-specific boss music</li>
+                        <li>✅ Mobile touch buttons (hold behavior)</li>
+                        <li>✅ Responsive layout on desktop, tablet, and mobile</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Version History -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card doc-card h-100">
+                <div class="card-header doc-card-header">
+                    <i class="fa-solid fa-code-branch me-2"></i>Version History
+                </div>
+                <div class="card-body">
+                    <p class="doc-text"><strong>Current version: v1.10.0</strong></p>
+                    <ul class="doc-list">
+                        <li><strong>v1.0.0</strong> — Initial arcade shooter, player movement, shooting, enemy waves, score, lives, and game over flow.</li>
+                        <li><strong>v1.1.0</strong> — Persistent high score, pilot name, coins, Black Market upgrades, and leaderboard support.</li>
+                        <li><strong>v1.2.0</strong> — 10-level progression, level themes, boss phases, layered boss health bars, and level/boss music.</li>
+                        <li><strong>v1.3.0</strong> — Power-ups, debuffs, magnet, cleanse, bomb, triple shot, rapid fire, explosions, and screen shake.</li>
+                        <li><strong>v1.4.0</strong> — Mobile touch controls, fullscreen layout, CRT styling, responsive canvas, and mobile fire button.</li>
+                        <li><strong>v1.5.0</strong> — Level 2 boss balance, single level-2 boss health bar, and increased power-up drops after level 2.</li>
+                        <li><strong>v1.6.0</strong> — Multi-hit enemy health, enemy health bars, and normal-wave enemy shooting.</li>
+                        <li><strong>v1.7.0</strong> — Stacking 3-second shield deflect, level 2 boss HUD cleanup, and cache reset loading bar.</li>
+                        <li><strong>v1.8.0</strong> — Mobile control mode selector, D-pad buttons, joystick sensitivity, and free responsive joystick movement.</li>
+                        <li><strong>v1.9.0</strong> — Alien enemies, gunship enemies, shooting spaceship enemies, all-boss spaceship redesigns, and fleet final boss.</li>
+                        <li><strong>v1.9.1</strong> — Bug fixes for joystick speed parity: sensitivity now changes response, not maximum ship speed.</li>
+                        <li><strong>v1.9.2</strong> — Faster joystick response with no sensitivity lag, plus larger boss ships.</li>
+                        <li><strong>v1.9.3</strong> — Moved mobile control settings to the main Controls panel and Pause menu to keep the in-game controller clean.</li>
+                        <li><strong>v1.9.4</strong> — Pause menu now has Resume, Controls, and Exit; sensitivity appears only when Joystick is selected.</li>
+                        <li><strong>v1.9.5</strong> — Startup loading bar now clears stale caches, refreshes game assets, and verifies mobile controls before entering the main screen.</li>
+                        <li><strong>v1.9.6</strong> — Responsive/device refresh now normalizes old links, rechecks controls after mobile cache restores, and repairs joystick markup on resize/orientation changes.</li>
+                        <li><strong>v1.9.7</strong> — Compact pause menu sizing for smaller screens and responsive play.</li>
+                        <li><strong>v1.9.8</strong> — Smaller directional button controls for compact mobile layouts.</li>
+                        <li><strong>v1.10.0</strong> — Replaced left/right placement with draggable controls, save position, and restore default.</li>
+                        <li><strong>v1.9.9</strong> — Added mobile control size sliders and left/right placement options.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conclusion -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card doc-card h-100">
+                <div class="card-header doc-card-header">
+                    <i class="fa-solid fa-flag-checkered me-2"></i>Conclusion
+                </div>
+                <div class="card-body">
+                    <p class="doc-text">
+                        Star Siege successfully meets all project requirements: a playable game with mechanics,
+                        progression, scoring, audio, mobile support, and a polished UI — built entirely
+                        without a game engine.
+                    </p>
+                    <p class="doc-text"><strong>Current feature set:</strong></p>
+                    <ul class="doc-list">
+                        <li>Multiple enemy types and layered boss fights</li>
+                        <li>Persistent upgrades, coins, high score, and pilot name</li>
+                        <li>Online leaderboard via PHP + MySQL with local fallback</li>
+                        <li>Procedural arcade audio for levels, bosses, and combat effects</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /row -->
+</section>
+
+<!-- ===== UPGRADES MODAL ===== -->
+<div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title screen-title mx-auto fs-3" id="upgradeModalLabel">
+                    <i class="fa-solid fa-wrench"></i> BLACK MARKET
+                </h5>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-muted small mb-4">Spend your Coins to permanently upgrade your ship stats. <br> <span class="text-info">Score is converted to Coins on Game Over!</span></p>
+                <div class="highscore-display mb-4" style="border-color: rgba(0, 212, 255, 0.25); background: rgba(0, 212, 255, 0.08);">
+                    <span class="hs-label text-info">AVAILABLE COINS:</span>
+                    <span class="hs-value text-info" style="text-shadow: 0 0 8px rgba(0,212,255,0.5);" id="upgradeCoinsDisplay">0</span>
+                </div>
+                
+                <div class="upgrade-list text-start">
+                    <!-- Speed Upgrade -->
+                    <div class="upgrade-item d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2);">
+                        <div>
+                            <div class="fw-bold text-info"><i class="fa-solid fa-gauge-high"></i> Thruster Engine (Lv <span id="lvlSpeed">0</span>)</div>
+                            <div class="small text-muted">Increases base movement speed.</div>
+                            <div class="small text-warning mt-1">Cost: <span id="costSpeed">500</span> pts</div>
+                        </div>
+                        <button id="buySpeedBtn" class="btn btn-outline-info btn-sm px-3">BUY</button>
+                    </div>
+                    
+                    <!-- Fire Rate Upgrade -->
+                    <div class="upgrade-item d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background: rgba(255,204,0,0.05); border: 1px solid rgba(255,204,0,0.2);">
+                        <div>
+                            <div class="fw-bold text-warning"><i class="fa-solid fa-bolt"></i> Overclock Blaster (Lv <span id="lvlFire">0</span>)</div>
+                            <div class="small text-muted">Reduces weapon cooldown.</div>
+                            <div class="small text-warning mt-1">Cost: <span id="costFire">800</span> pts</div>
+                        </div>
+                        <button id="buyFireBtn" class="btn btn-outline-warning btn-sm px-3">BUY</button>
+                    </div>
+                    
+                    <!-- Starting Lives Upgrade -->
+                    <div class="upgrade-item d-flex justify-content-between align-items-center mb-1 p-3 rounded" style="background: rgba(255,60,90,0.05); border: 1px solid rgba(255,60,90,0.2);">
+                        <div>
+                            <div class="fw-bold text-danger"><i class="fa-solid fa-heart"></i> Titanium Hull (Lv <span id="lvlLives">0</span>)</div>
+                            <div class="small text-muted">+1 Starting Life.</div>
+                            <div class="small text-warning mt-1">Cost: <span id="costLives">2000</span> pts</div>
+                        </div>
+                        <button id="buyLivesBtn" class="btn btn-outline-danger btn-sm px-3">BUY</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 justify-content-center">
+                <button type="button" class="btn btn-outline-glow px-4" data-bs-dismiss="modal">CLOSE</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer class="game-footer text-center py-3 mt-2" id="mainFooter">
+    <p class="mb-0">
+        <i class="fa-solid fa-rocket me-1"></i>
+        Star Siege &copy; 2026 — Student Project
+        <i class="fa-solid fa-rocket fa-flip-horizontal ms-1"></i>
+    </p>
+</footer>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Game Logic -->
+<script>
+    (async () => {
+        const loader = document.getElementById('cacheLoader');
+        const fill = document.getElementById('cacheLoaderFill');
+        const note = document.getElementById('cacheLoaderNote');
+        const verifyControls = () => {
+            if (window.ensureMobileControls) window.ensureMobileControls();
+            return Boolean(
+                document.getElementById('joystickZone') &&
+                document.getElementById('joystickStick') &&
+                document.getElementById('buttonPad') &&
+                document.getElementById('btnFire')
+            );
+        };
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted && !sessionStorage.getItem('starSiegeBfcacheReloaded')) {
+                sessionStorage.setItem('starSiegeBfcacheReloaded', '1');
+                location.reload();
+            }
+        });
+        if (window.starSiegeCacheReady) await window.starSiegeCacheReady;
+
+        const assetStamp = encodeURIComponent((window.STAR_SIEGE_BUILD || 'dev') + '-' + Date.now());
+        const gameScript = document.createElement('script');
+        gameScript.src = 'assets/js/game.js?v=' + assetStamp;
+        gameScript.onload = () => {
+            if (fill) fill.style.width = '92%';
+            if (note) note.textContent = 'Verifying mobile controls...';
+            setTimeout(() => {
+                if (verifyControls()) {
+                    if (fill) fill.style.width = '100%';
+                    if (note) note.textContent = 'Ready.';
+                    setTimeout(() => loader && loader.classList.add('done'), 180);
+                } else if (!sessionStorage.getItem('starSiegeControlsReloaded')) {
+                    sessionStorage.setItem('starSiegeControlsReloaded', '1');
+                    if (note) note.textContent = 'Controls refreshed. Reloading once...';
+                    location.reload();
+                } else {
+                    if (fill) fill.style.width = '100%';
+                    if (note) note.textContent = 'Ready.';
+                    setTimeout(() => loader && loader.classList.add('done'), 180);
+                }
+            }, 120);
+        };
+        gameScript.onerror = () => {
+            if (note) note.textContent = 'Game files could not load. Refresh once.';
+            setTimeout(() => loader && loader.classList.add('done'), 900);
+        };
+        document.body.appendChild(gameScript);
+    })();
+</script>
+
+</body>
+</html>
